@@ -1,0 +1,87 @@
+import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+
+export const topics = pgTable("topics", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  track: text("track").notNull(),
+  order: integer("sort_order").notNull().default(0),
+  summary: text("summary").notNull().default(""),
+  stage: text("stage").notNull().default("foundation"),
+  mustKnow: jsonb("must_know").$type<string[]>().notNull().default([]),
+  progress: integer("progress").notNull().default(0),
+  isSeed: boolean("is_seed").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const roadmapSessions = pgTable("roadmap_sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  topicId: uuid("topic_id").notNull().references(() => topics.id, { onDelete: "cascade" }),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  order: integer("sort_order").notNull().default(0),
+  objective: text("objective").notNull().default(""),
+  scope: jsonb("scope").$type<string[]>().notNull().default([]),
+  outcomes: jsonb("outcomes").$type<string[]>().notNull().default([]),
+  estimatedMinutes: integer("estimated_minutes").notNull().default(45),
+  status: text("status").notNull().default("todo"),
+  notes: text("notes").notNull().default(""),
+  isSeed: boolean("is_seed").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const questions = pgTable("questions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  externalId: text("external_id").unique(),
+  topicSlug: text("topic_slug").notNull(),
+  sessionSlug: text("session_slug"),
+  subtopics: jsonb("subtopics").$type<string[]>().notNull().default([]),
+  prerequisites: jsonb("prerequisites").$type<string[]>().notNull().default([]),
+  type: text("type").notNull(),
+  difficulty: integer("difficulty").notNull(),
+  questionMd: text("question_md").notNull(),
+  answerMd: text("answer_md").notNull(),
+  keyPoints: jsonb("key_points").$type<string[]>().notNull().default([]),
+  hints: jsonb("hints").$type<{level:number; text:string}[]>().notNull().default([]),
+  commonMistakes: jsonb("common_mistakes").$type<string[]>().notNull().default([]),
+  expectedMinutes: integer("expected_minutes").notNull().default(2),
+  tags: jsonb("tags").$type<string[]>().notNull().default([]),
+  origin: text("origin").notNull().default("user"),
+  nextReviewAt: timestamp("next_review_at", { withTimezone: true }).notNull().defaultNow(),
+  lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true }),
+  repetitions: integer("repetitions").notNull().default(0),
+  lapses: integer("lapses").notNull().default(0),
+  intervalDays: integer("interval_days").notNull().default(0),
+  lastGrade: text("last_grade"),
+  confidence: integer("confidence"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const mistakes = pgTable("mistakes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: text("title").notNull(),
+  topicSlug: text("topic_slug").notNull().default("general"),
+  source: text("source").notNull().default("study"),
+  severity: text("severity").notNull().default("medium"),
+  context: text("context").notNull().default(""),
+  rootCause: text("root_cause").notNull().default(""),
+  repair: text("repair").notNull().default(""),
+  status: text("status").notNull().default("open"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const aiSessions = pgTable("ai_sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  mode: text("mode").notNull(),
+  topic: text("topic").notNull().default(""),
+  roadmapSessionSlug: text("roadmap_session_slug"),
+  prompt: text("prompt").notNull(),
+  response: text("response").notNull().default(""),
+  notes: text("notes").notNull().default(""),
+  score: integer("score"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

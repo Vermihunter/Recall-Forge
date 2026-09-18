@@ -1,0 +1,20 @@
+export const dynamic = "force-dynamic";
+import Link from "next/link";
+import { and, asc, eq, gt, lte, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { aiSessions, mistakes, questions, roadmapSessions, topics } from "@/db/schema";
+import { ensureSeedData } from "@/lib/seed";
+
+const countOf=async(table:any,where?:any)=>Number((await db.select({count:sql<number>`count(*)`}).from(table).where(where))[0]?.count||0);
+
+export default async function DashboardPage(){
+  await ensureSeedData(); const now=new Date();
+  const [topicCount,questionCount,due,reviewed,openMistakes,chatCount,sessionCount,doneSessions,nextDue]=await Promise.all([
+    countOf(topics),countOf(questions),countOf(questions,lte(questions.nextReviewAt,now)),countOf(questions,gt(questions.repetitions,0)),countOf(mistakes,eq(mistakes.status,"open")),countOf(aiSessions),countOf(roadmapSessions),countOf(roadmapSessions,eq(roadmapSessions.status,"done")),db.select().from(questions).where(lte(questions.nextReviewAt,now)).orderBy(asc(questions.nextReviewAt)).limit(4)
+  ]);
+  return <>
+    <section className="hero"><div className="eyebrow">Deliberate practice / single-user</div><div className="hero-row"><h1>Turn broad subjects into sessions you can actually finish.</h1><div className="actions"><Link className="btn accent" href="/review">Start due review →</Link><Link className="btn secondary" href="/roadmap">Choose next session</Link></div></div><p className="lede">Each roadmap topic is decomposed into bounded sessions. One session becomes one ChatGPT conversation: learn, retrieve, reconstruct, get criticized, apply, then create revision questions.</p></section>
+    <section className="grid grid-4"><div className="card"><div className="stat-label">Due now</div><div className="stat-value">{due}</div><div className="muted">Questions waiting for retrieval</div></div><div className="card"><div className="stat-label">Question bank</div><div className="stat-value">{questionCount}</div><div className="muted">Your imported/created questions</div></div><div className="card"><div className="stat-label">Roadmap sessions</div><div className="stat-value">{doneSessions}/{sessionCount}</div><div className="muted">Completed concrete study units</div></div><div className="card"><div className="stat-label">Open mistakes</div><div className="stat-value">{openMistakes}</div><div className="muted">Weaknesses still to repair</div></div></section>
+    <section className="section grid grid-2"><div className="card"><div className="section-head"><div><div className="eyebrow">Today</div><h2>Retrieval queue</h2></div><Link href="/review" className="btn small secondary">Review all</Link></div>{nextDue.length===0?<div className="empty">Nothing due. Finish a roadmap session and import its revision questions.</div>:<div className="question-list">{nextDue.map(q=><div className="card-flat" key={q.id}><div className="question-meta"><span className="badge level">L{q.difficulty}</span><span className="badge">{q.type}</span><span className="badge accent">{q.topicSlug}</span>{q.sessionSlug&&<span className="badge">{q.sessionSlug}</span>}</div><div className="dashboard-question">{q.questionMd}</div></div>)}</div>}</div><div className="card"><div className="eyebrow">Learning system</div><h2 className="top-gap">One session, one loop.</h2><div className="workflow-list"><span>01</span><div><strong>Learn a bounded session</strong><p>Scope is explicit; later material is deferred.</p></div><span>02</span><div><strong>Retrieve and reconstruct</strong><p>Answer before reveal; explain the whole session cold.</p></div><span>03</span><div><strong>Critique and apply</strong><p>Repair gaps, then survive realistic follow-ups.</p></div><span>04</span><div><strong>Review later</strong><p>Import revision questions and let spacing do the rest.</p></div></div><div className="divider"/><div className="grid grid-2"><div><div className="stat-label">AI chats captured</div><div className="stat-value small-stat">{chatCount}</div></div><div><div className="stat-label">Questions reviewed</div><div className="stat-value small-stat">{reviewed}</div></div></div></div></section>
+  </>;
+}

@@ -1,0 +1,2 @@
+import MistakeLog from "@/components/MistakeLog";
+export default function MistakesPage(){return <><section className="hero"><div className="eyebrow">Error-driven learning</div><h1>Your repeated mistakes are the real syllabus.</h1><p className="lede">Record why an answer failed, not just that it failed. Over time this becomes a personalized map of weak recognition patterns, fuzzy concepts and implementation traps.</p></section><MistakeLog/></>}
