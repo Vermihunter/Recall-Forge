@@ -47,6 +47,7 @@ export default function RevisionSessionPlayer({ id }:{ id:string }) {
     {recommendations.length>0&&<button className="btn accent followup-btn" onClick={createFollowup} disabled={followupBusy}>{followupBusy?"Building…":"Build recommended follow-up →"}</button>}
   </div>;
 
+  if (!current) return <div className="empty">Question not found.</div>;
   const q=current.question; const isMulti=q.format==="multi_select";
   return <div className="revision-player">
     <div className="revision-session-head"><div><div className="eyebrow">Feedback-driven revision</div><h1>{data.session.name}</h1><small>{data.session.sourceSessionSlugs.length} source sessions · {current.origin==="recommended"?"graph recommendation":"source question"}</small></div><div className="revision-progress-ring"><strong>{index+1}</strong><span>/ {data.items.length}</span></div></div>
