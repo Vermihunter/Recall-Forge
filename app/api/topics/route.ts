@@ -2,10 +2,8 @@ import { asc } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { topics } from "@/db/schema";
-import { ensureSeedData } from "@/lib/seed";
 
 export async function GET() {
-  await ensureSeedData();
   return NextResponse.json(await db.select().from(topics).orderBy(asc(topics.order), asc(topics.title)));
 }
 
@@ -15,6 +13,7 @@ export async function POST(req: Request) {
     slug: String(body.slug || "").trim(),
     title: String(body.title || "").trim(),
     track: String(body.track || "Custom").trim(),
+    parentTopicId: body.parentTopicId ? String(body.parentTopicId) : null,
     order: Number(body.order || 0),
     summary: String(body.summary || ""),
     stage: String(body.stage || "foundation"),

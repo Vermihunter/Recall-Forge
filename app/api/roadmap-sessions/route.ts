@@ -24,6 +24,8 @@ export async function POST(req: Request) {
     outcomes: Array.isArray(body.outcomes) ? body.outcomes.map(String) : [],
     estimatedMinutes: Number(body.estimatedMinutes || 45),
     status: String(body.status || "todo"),
+    plannedFor: body.plannedFor ? String(body.plannedFor) : null,
+    planOrder: Number(body.planOrder || 0),
     notes: String(body.notes || ""),
     isSeed: false,
     updatedAt: new Date(),

@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "export:mongo-user-data": "node scripts/export-mongo-user-data.mjs"
+    "export:mongo-user-data": "node scripts/export-mongo-user-data.mjs",
+    "db:reset-study": "node scripts/reset-study-db.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",

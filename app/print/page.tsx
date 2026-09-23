@@ -1,6 +1,35 @@
-export const dynamic="force-dynamic";
-import { asc } from "drizzle-orm";
+export const dynamic = "force-dynamic";
+
+import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { questions } from "@/db/schema";
+import { questions, roadmapSessions, topics } from "@/db/schema";
 import PrintStudio from "@/components/PrintStudio";
-export default async function PrintPage(){const rows=await db.select().from(questions).orderBy(asc(questions.topicSlug),asc(questions.difficulty));return <><section className="hero print-page-hero"><div className="eyebrow">Duplex printable recall cards</div><h1>Question on the front. Answer exactly behind it.</h1><p className="lede">Generate A4 or A3 sheets with mirrored backs for long-edge or short-edge duplex printing. The same layout can be printed directly to PDF or downloaded as standalone HTML.</p></section><PrintStudio questions={rows as any}/></>}
+
+export default async function PrintPage() {
+  const [rows, sessionRows] = await Promise.all([
+    db.select().from(questions).orderBy(asc(questions.topicSlug), asc(questions.sessionSlug), asc(questions.difficulty), asc(questions.createdAt)),
+    db
+      .select({
+        slug: roadmapSessions.slug,
+        title: roadmapSessions.title,
+        topicSlug: topics.slug,
+        order: roadmapSessions.order,
+      })
+      .from(roadmapSessions)
+      .innerJoin(topics, eq(roadmapSessions.topicId, topics.id))
+      .orderBy(asc(topics.order), asc(roadmapSessions.order)),
+  ]);
+
+  return (
+    <>
+      <section className="hero print-page-hero">
+        <div className="eyebrow">Duplex printable recall cards</div>
+        <h1>Print exactly the questions you mean to print.</h1>
+        <p className="lede">
+          Scope a print job by topic and concrete roadmap session, keep a persistent printed/unprinted queue, then manually fine-tune the exact cards before sending them to paper or PDF.
+        </p>
+      </section>
+      <PrintStudio questions={rows as any} sessions={sessionRows} />
+    </>
+  );
+}

@@ -26,6 +26,16 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json();
+  const format = body.format === "multi_select" ? "multi_select" : "open";
+  const options = format === "multi_select" && Array.isArray(body.options) ? body.options.slice(0, 4).map(String) : [];
+  if (format === "multi_select" && options.length !== 4) return NextResponse.json({ error: "multi_select questions require exactly four options" }, { status: 400 });
+  const correctOptionIndexes = format === "multi_select" && Array.isArray(body.correctOptionIndexes)
+    ? Array.from(new Set(body.correctOptionIndexes.map(Number).filter((n: number) => Number.isInteger(n) && n >= 0 && n < 4))).sort((a: number, b: number) => a - b)
+    : [];
+  const optionFeedback = format === "multi_select" ? Array.from({ length: 4 }, (_, i) => {
+    const x = Array.isArray(body.optionFeedback) ? body.optionFeedback[i] : null;
+    return { rationale: String(x?.rationale || ""), concepts: Array.isArray(x?.concepts) ? x.concepts.map(String) : [] };
+  }) : [];
   const [question] = await db.insert(questions).values({
     externalId: body.externalId || null,
     topicSlug: String(body.topicSlug || body.topic || "general"),
@@ -33,9 +43,16 @@ export async function POST(req: Request) {
     subtopics: Array.isArray(body.subtopics) ? body.subtopics : [],
     prerequisites: Array.isArray(body.prerequisites) ? body.prerequisites : [],
     type: String(body.type || "explain"),
+    format,
     difficulty: Math.max(1, Math.min(6, Number(body.difficulty || 2))),
     questionMd: String(body.questionMd || body.question || ""),
     answerMd: String(body.answerMd || body.answer || ""),
+    options,
+    correctOptionIndexes,
+    optionFeedback,
+    concepts: Array.isArray(body.concepts) ? body.concepts.map(String) : [],
+    relatedQuestionIds: Array.isArray(body.relatedQuestionIds) ? body.relatedQuestionIds.map(String) : [],
+    prerequisiteQuestionIds: Array.isArray(body.prerequisiteQuestionIds) ? body.prerequisiteQuestionIds.map(String) : [],
     keyPoints: Array.isArray(body.keyPoints) ? body.keyPoints : [],
     hints: Array.isArray(body.hints) ? body.hints : [],
     commonMistakes: Array.isArray(body.commonMistakes) ? body.commonMistakes : [],
