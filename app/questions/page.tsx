@@ -1,6 +1,13 @@
-import QuestionBank from "@/components/QuestionBank";
+import QuestionBankClient from "./QuestionBankClient";
 
 export default async function QuestionsPage({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {
   const { topic = "" } = await searchParams;
-  return <><section className="hero"><div className="eyebrow">Question Bank · revision sessions</div><h1>Build bounded practice sets instead of loading the whole library.</h1><p className="lede">Combine roadmap sessions, preview only that slice, generate open and 4-option diagnostic questions, then let feedback build a knowledge-neighborhood for smarter follow-up recommendations.</p></section><QuestionBank initialTopic={topic} /></>;
+  return <>
+    <section className="hero qb-page-hero">
+      <div className="eyebrow">Question Bank · scoped library</div>
+      <h1>Find the questions you actually want to revise.</h1>
+      <p className="lede">Browse by track → topic → roadmap session, see new/unprinted counts immediately, combine several sources, hand-pick questions, and build a bounded revision session without loading the whole bank into the browser.</p>
+    </section>
+    <QuestionBankClient initialTopic={topic} />
+  </>;
 }
